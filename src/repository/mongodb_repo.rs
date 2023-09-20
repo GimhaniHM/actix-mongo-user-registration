@@ -87,4 +87,40 @@ impl MongoRepo {
         Ok(users)
 
     }
+
+    pub async fn update_user(&self, id: &String, new_user: User) -> Result<UpdateResult, Error> {
+        let obj_id = ObjectId::parse_str(id).unwrap();
+        let filter = doc! {"_id": obj_id};
+        let new_doc = doc! {
+            "$set":
+                {
+                    "id": new_user.id,
+                    "name": new_user.name,
+                    "location": new_user.location,
+                    "title": new_user.title
+                },
+        };
+        let updated_doc = self
+            .col
+            .update_one(filter, new_doc, None)
+            .await
+            .ok()
+            .expect("Error updating user");
+        Ok(updated_doc)
+    }
+
+    pub async fn delete_user(&self, id: &String) -> Result<DeleteResult, Error> {
+        let obj_id = ObjectId::parse_str(id).unwrap();
+        let filter = doc!{ "id": obj_id};
+
+        let user_detail = self
+            .col
+            .delete_one(filter, None)
+            .await
+            .ok()
+            .expect("Error deleting user");
+        Ok(user_detail)
+    }
+
+
 }
